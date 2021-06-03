@@ -1,0 +1,17 @@
+{
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "driver": "SQLite",
+            "database": "${workspaceFolder:Portall}/dash/db.sqlite3",
+            "name": "portall"
+        },
+        {
+            "previewLimit": 50,
+            "driver": "SQLite",
+            "database": "${workspaceFolder:Portall}/database/db.sqlite3",
+            "name": "DB"
+        }
+    ],
+    "sqltools.useNodeRuntime": true
+}

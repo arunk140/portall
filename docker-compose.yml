@@ -1,0 +1,13 @@
+version: '3.7'
+services:
+  portall:
+    build: ./dash
+    ports:
+      - 8090:8000
+    env_file:
+      - ./dash/.env
+    volumes:
+      - type: bind
+        source: ./database
+        target: /usr/src/app/database
+    command: python manage.py runserver 0.0.0.0:8000 --insecure

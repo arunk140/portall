@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-str-from-setting="site_title"></title>
+    <script type="text/javascript">
+        {% autoescape off %}
+            var site_settings = {{ settings|safe|default:"{}" }};
+        {% endautoescape %}
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@300&display=swap');
+        *{font-family: 'Ubuntu', sans-serif;}
+        .search {
+            text-align: center;
+        }
+        .search>input {
+            width: 40%;
+            min-width: 300px;
+            background-color: #222;
+            color: white;
+            padding: 8px;
+            border: none;
+            margin-bottom: 10px;
+        }
+        .addBtn {
+            color: #666;
+        }
+        .rmBtn {
+            position:relative;
+            top:-80px;
+            left:30px;
+            color:red;
+        }
+    </style>
+    
+    <style data-str-from-setting="CSS"></style>
+    <script src="https://unpkg.com/feather-icons"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+</head>
+<body>
+    <img class="site-logo" data-img-from-setting="logo_path"></img>
+    <div class="search">
+        <input id="searchBar" type="text" placeholder="Search">
+    </div>
+    <br>
+    {% if shortcut_list %}
+        {% regroup shortcut_list by category as category_list %}
+        {% for category in category_list %}
+        
+
+        <h2 class="category-title">
+            <!-- <i data-feather="{{category.grouper.icon_class}}"></i> -->
+            <!-- <br> -->
+            <span>{{ category.grouper.category_name }}</span>
+        </h2>
+        <ul id="shortcutUL">
+            {% for shortc in category.list %}
+            <li class="btn grow visible">
+                <a href="/{{ shortc.id }}/">
+                    <i data-feather="{{ shortc.icon_class }}"></i>
+                    <br>
+                    {{ shortc.shortcut_name }}
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+        <!-- <hr> -->
+        {% endfor %}
+    {% else %}
+        <p>No Shorcuts are Setup.</p>
+    {% endif %}
+    <script type="text/javascript">
+        var listUL = document.getElementById("shortcutUL");
+        var extras = localStorage.getItem("extras") === null ? [] : JSON.parse(localStorage.getItem('extras'));
+        function addExtras() {
+            var paras = document.getElementsByClassName('extras');
+            while (paras[0]) 
+                paras[0].parentNode.removeChild(paras[0]);
+            extras.forEach(extr => {
+                if (extr && extr.url && extr.label && extr.icon) {
+                    var extBtn = document.createElement('li');
+                    extBtn.classList.add("visible");
+                    extBtn.classList.add("btn");
+                    extBtn.classList.add("grow");
+                    extBtn.classList.add("extras");
+                    var extLink = document.createElement('a');
+                    extLink.setAttribute('href', extr.url);
+                    var extIcon = document.createElement('i');
+                    var extRemove = document.createElement('span');
+                    extRemove.append('x');
+                    extRemove.classList.add("rmBtn");
+                    extRemove.addEventListener('click', function (params) {
+                        for (let eee = 0; eee < extras.length; eee++) {
+                            const exxx = extras[eee];
+                            if (exxx && exxx.url == extr.url && exxx.label == extr.label) {
+                                delete extras[eee];
+                                localStorage.setItem('extras', JSON.stringify(extras));
+                                addExtras();
+                            } 
+                        }
+                    });
+                    extIcon.setAttribute('data-feather',extr.icon);
+                    extLink.appendChild(extIcon);
+                    extLink.append(document.createElement('br'));
+                    extLink.append(extr.label);
+                    extLink.append(document.createElement('br'));
+                    extBtn.appendChild(extLink);
+                    extBtn.appendChild(extRemove);
+                    listUL.appendChild(extBtn);
+                }
+            });
+        }
+
+        if (extras.length > 0) {
+            addExtras();
+        }
+
+        var searchbar = document.getElementById("searchBar");
+        window.addEventListener(
+            "pageshow",
+            function (ev) {
+                searchbar.value = "";
+            }
+        );
+        for (const key in site_settings) {
+            if (Object.hasOwnProperty.call(site_settings, key)) {
+                const vall = site_settings[key];
+                var lookupKeys = [
+                    {'searchTerm':'[data-str-from-setting="' + key + '"]', 'type':'str'},
+                    {'searchTerm':'[data-img-from-setting="' + key + '"]', 'type':'img'}
+                ];
+                lookupKeys.forEach(lookupKey => {
+                    var foundElms = document.querySelectorAll(lookupKey.searchTerm);
+                    foundElms.forEach(sett => {
+                        switch (lookupKey.type) {
+                            case 'str':
+                                sett.innerHTML = vall;
+                                break;
+                            case 'img':
+                                sett.setAttribute('src', vall)
+                                break;
+                        }
+                    });
+                });
+            }
+        }
+        searchbar.focus();
+        searchbar.addEventListener(
+            "keyup", 
+            function (ev) {
+                var input, filter, li, a, i, txtValue;
+                input = document.getElementById('searchBar');
+                if (ev.key === "Enter" && input.value.length != 0) {
+                    var visibleShortcuts = document.getElementsByClassName("visible");
+                    if (visibleShortcuts.length >= 1) {
+                        window.location.href = visibleShortcuts[0].firstElementChild.getAttribute('href');
+                    } else {
+                        window.location.replace('https://www.google.com/search?q='+input.value)
+                    }
+                } else {
+                    filter = input.value.toUpperCase();
+                    //
+                    li = document.getElementsByClassName('btn');
+                    for (i = 0; i < li.length; i++) {
+                        a = li[i].getElementsByTagName("a")[0];
+                        txtValue = a.textContent || a.innerText;
+                        if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                            li[i].style.display = "";
+                            li[i].classList.add("visible");
+                        } else {
+                            li[i].style.display = "none";
+                            li[i].classList.remove("visible");
+                        }
+                    }
+                }
+            }
+        );
+        var shortcuts = document.getElementsByClassName('grow');
+        for (let elId = 0; elId < shortcuts.length; elId++) {
+            const shortcut = shortcuts[elId];
+            shortcut.addEventListener(
+                "click",
+                function (ev) {
+                    window.location.href = ev.target.firstElementChild.getAttribute('href');
+                }
+            );
+        }
+        
+        var addBtn = document.createElement('li');
+        // addBtn.classList.add("visible");
+        addBtn.style.display = "none";
+        addBtn.classList.add("btn");
+        addBtn.classList.add("addBtn");
+        var plusIcon = document.createElement('i');
+        plusIcon.setAttribute('data-feather', 'plus-circle');
+        addBtn.appendChild(plusIcon);
+        addBtn.addEventListener('click', function (params) {
+            var url = prompt("URL", "");
+            if (url) {
+                var label = prompt("Label", url);
+                if (label) {
+                    var icon = prompt("icon", 'circle');
+                    if (url && label && icon) {
+                        extras.push({
+                            url,
+                            label,
+                            icon
+                        });
+                        localStorage.setItem('extras', JSON.stringify(extras));
+                        addExtras();
+                        feather.replace({
+                            width: 30,
+                            height: 30
+                        });
+                    }
+                }
+            }
+        });
+        listUL.parentElement.appendChild(addBtn);
+        feather.replace({
+            width: 30,
+            height: 30
+        });
+    </script>
+</body>
+</html>
