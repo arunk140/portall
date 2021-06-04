@@ -1,6 +1,6 @@
 ## Portall - Homepage/New Tab Page for your Favorite Sites
 
-### A simple Django App to manage shortcuts to all your favorite website.
+### A full customizable Django App to manage your Bookmarks!
 
 ---
 
